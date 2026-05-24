@@ -2,6 +2,7 @@ const { Client, GatewayIntentBits, EmbedBuilder, REST, Routes } = require("disco
 
 const TOKEN = process.env.TOKEN;
 const LOG_CHANNEL_ID = "1506692717772673245";
+const ADMIN_ROLES = ["Fondateur", "Co fonda", "Modérateur"];
 let active = true;
 
 const client = new Client({
@@ -30,6 +31,11 @@ client.once("ready", async () => {
 
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
+  const hasRole = interaction.member.roles.cache.some(r => ADMIN_ROLES.includes(r.name));
+  if (!hasRole) {
+    await interaction.reply({ content: "❌ Tu n'as pas la permission d'utiliser cette commande !", ephemeral: true });
+    return;
+  }
   if (interaction.commandName === "activer") {
     active = true;
     await interaction.reply({ content: "✅ Logs activés !", ephemeral: true });
