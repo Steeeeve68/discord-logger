@@ -1,7 +1,7 @@
 const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
 
 const TOKEN = process.env.TOKEN;
-const LOG_CHANNEL_ID = "ID_SALON_LOGS";
+const LOG_CHANNEL_ID = "1506692717772673245";
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers],
