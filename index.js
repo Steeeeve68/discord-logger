@@ -1,13 +1,15 @@
-const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
+const { Client, GatewayIntentBits, EmbedBuilder, REST, Routes } = require("discord.js");
 
 const TOKEN = process.env.TOKEN;
 const LOG_CHANNEL_ID = "1506692717772673245";
+let active = true;
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers],
 });
 
 async function sendLog(color, title, fields, footer = "") {
+  if (!active) return;
   const channel = await client.channels.fetch(LOG_CHANNEL_ID).catch(() => null);
   if (!channel) return;
   const embed = new EmbedBuilder().setColor(color).setTitle(title).addFields(fields).setTimestamp();
@@ -15,15 +17,26 @@ async function sendLog(color, title, fields, footer = "") {
   await channel.send({ embeds: [embed] }).catch(console.error);
 }
 
-client.once("ready", () => console.log(`✅ Bot connecté : ${client.user.tag}`));
+client.once("ready", async () => {
+  console.log(`✅ Bot connecté : ${client.user.tag}`);
+  const rest = new REST({ version: "10" }).setToken(TOKEN);
+  await rest.put(Routes.applicationCommands(client.user.id), {
+    body: [
+      { name: "activer", description: "Active les logs" },
+      { name: "stop", description: "Désactive les logs" },
+    ],
+  });
+});
 
-client.on("messageCreate", async (message) => {
-  if (message.author.bot) return;
-  await sendLog(0x5865f2, "📨 Nouveau message", [
-    { name: "Auteur", value: `${message.author}`, inline: true },
-    { name: "Salon", value: `${message.channel}`, inline: true },
-    { name: "Message", value: message.content || "*[pas de texte]*" },
-  ], `ID: ${message.id}`);
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
+  if (interaction.commandName === "activer") {
+    active = true;
+    await interaction.reply({ content: "✅ Logs activés !", ephemeral: true });
+  } else if (interaction.commandName === "stop") {
+    active = false;
+    await interaction.reply({ content: "🛑 Logs désactivés !", ephemeral: true });
+  }
 });
 
 client.on("messageUpdate", async (before, after) => {
