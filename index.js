@@ -2,7 +2,6 @@ const { Client, GatewayIntentBits, EmbedBuilder, REST, Routes } = require("disco
 
 const TOKEN = process.env.TOKEN;
 const LOG_CHANNEL_ID = "1506692717772673245";
-const SESSION_CHANNEL_ID = "1472573917896900670";
 const ADMIN_ROLES = ["Fondateur", "Co fonda", "Modérateur"];
 let active = true;
 
@@ -26,16 +25,6 @@ client.once("ready", async () => {
     body: [
       { name: "activer", description: "Active les logs" },
       { name: "stop", description: "Désactive les logs" },
-      {
-        name: "session",
-        description: "Envoie une annonce de session",
-        options: [
-          { name: "date", description: "Date de la session (ex: Samedi 23/05)", type: 3, required: true },
-          { name: "heure", description: "Heure de la session (ex: 14h00)", type: 3, required: true },
-          { name: "accroche", description: "Phrase d'accroche", type: 3, required: true },
-          { name: "image", description: "URL de l'image (optionnel)", type: 3, required: false },
-        ],
-      },
     ],
   });
 });
@@ -47,50 +36,12 @@ client.on("interactionCreate", async (interaction) => {
     await interaction.reply({ content: "❌ Tu n'as pas la permission d'utiliser cette commande !", ephemeral: true });
     return;
   }
-
   if (interaction.commandName === "activer") {
     active = true;
     await interaction.reply({ content: "✅ Logs activés !", ephemeral: true });
-
   } else if (interaction.commandName === "stop") {
     active = false;
     await interaction.reply({ content: "🛑 Logs désactivés !", ephemeral: true });
-
-  } else if (interaction.commandName === "session") {
-    const date = interaction.options.getString("date");
-    const heure = interaction.options.getString("heure");
-    const accroche = interaction.options.getString("accroche");
-    const image = interaction.options.getString("image");
-
-    const contenu = `**## @everyone \`\`Nouvelle Session !\`\` **
-▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
-*### En effet, il y aura une __nouvelle session__ Roleplay qui se déroulera le ${date} à \`\`${heure}\`\`.* *${accroche}*
-▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
-***Pour rejoindre la session attendez que la session soit lancée, puis connecter vous dans le salon vocal "Début De Session".***
-▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
-***Merci de cocher l'une des trois réactions en bas de l'annonce pour savoir votre statut concernant la session du jour.***
-***### Voici le code couleur :***
-*-  ✅= Présent
--  🕑= Peut être/ En retard
--  ❌= Absent*
-▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬`;
-
-    const sessionChannel = await client.channels.fetch(SESSION_CHANNEL_ID).catch(() => null);
-    if (!sessionChannel) {
-      await interaction.reply({ content: "❌ Salon introuvable !", ephemeral: true });
-      return;
-    }
-
-    const msg = await sessionChannel.send({
-      content: contenu,
-      files: image ? [image] : [],
-    });
-
-    await msg.react("✅");
-    await msg.react("🕑");
-    await msg.react("❌");
-
-    await interaction.reply({ content: "✅ Annonce envoyée !", ephemeral: true });
   }
 });
 
